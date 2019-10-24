@@ -1,0 +1,870 @@
+/*<매출액 포함 안 된 자료>*/
+
+DATA produce101;
+	INFILE "c:\produce101.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x1;
+RUN
+
+
+PROC REG DATA=produce101;
+MODEL y = x2;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 ;
+RUN
+
+proc reg data=produce101;
+model y = i x1 x2 x3 x4 x5;
+output out = out1 residual = e2 student = r2 predicted=yhat;
+run
+
+proc univariate data=out1 normal
+var e2 r2;
+run
+
+DATA produce102;
+SET out1;
+u=(e2**2)/(88117652230/35);
+RUN
+
+proc reg data=produce102;
+model u = i x1 x2 x3 x4 x5;
+model u = yhat;
+run
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 / vif collinoint ;
+RUN
+
+/*변수변환*/
+
+PROC TRANSREG DATA=produce101;
+MODEL boxcox(y) = identity(i x1 x2 x3 x4 x5);
+RUN 
+
+DATA produce101;
+	INFILE "c:\produce101.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	ay=y**.75
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 x3 x4 x5;
+RUN
+
+DATA produce101;
+	INFILE "c:\produce101.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	ay=y**.75
+	lnx1=log(x1);
+	lnx2=log(x2);
+	lnx3=log(x3);
+	lnx4=log(x4);
+	lnx5=log(x5);
+	x1lnx1=x1*lnx1;
+	x2lnx2=x2*lnx2;
+	x3lnx3=x3*lnx3;
+	x4lnx4=x4*lnx4;
+	x5lnx5=x5*lnx5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x1 x1lnx1;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x2 x2lnx2;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x3 x3lnx3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x4 x4lnx4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x5 x5lnx5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5;
+RUN
+
+/*변환 후 모형진단*/
+
+proc reg data=produce101;
+model ay = i x1 x2 lnx3 x4 x5;
+output out = out2 residual = e1 student = r1 predicted=yhat;
+run
+
+proc univariate data=out2 normal
+var e1 r1;
+run
+
+DATA produce103;
+SET out2;
+u=(e1**2)/(120296163/35);
+RUN
+
+proc reg data=produce103;
+model u =  i x1 x2 lnx3 x4 x5;
+model u = yhat;
+run
+
+/*변환 후 다중공선성*/
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5 / vif collinoint ;
+RUN
+
+/*변수 선택*/
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5 / selection=forward slentry=.2
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5 / selection=backward slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5 / selection=stepwise slentry=.2 slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5 / selection=rsquare adjrsq mse cp
+RUN
+
+/*선택 후 모형진단-cp통계량*/
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4;
+RUN
+
+proc reg data=produce101;
+model ay = x2 x4 ;
+output out = out3 residual = e3 student = r3 predicted=yhat;
+run
+
+proc univariate data=out3 normal
+var e3 r3;
+run
+
+DATA produce104;
+SET out3;
+u=(e3**2)/(132442221/35);
+RUN
+
+proc reg data=produce104;
+model u =  x2 x4 ;
+model u = yhat;
+run
+
+/*지시변수 전의 최종모형*/
+
+PROC REG DATA=produce101;
+MODEL ay =x2 x4;
+RUN
+
+
+/**교호작용 추가 두번째**/
+
+DATA produce101;
+	SET produce101;
+	lnx3=log(x3);
+	ix1=i*x1;
+	ix2=i*x2;
+	ilnx3=i*lnx3;
+	ix4=i*x4;
+	ix5=i*x5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5;
+RUN
+
+/*교호작용  모형진단*/
+
+proc reg data=produce101;
+model ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5;
+output out = out9 residual = e9 student = r9 predicted=yhat;
+run
+
+proc univariate data=out9 normal
+var e9 r9;
+run
+
+DATA produce109;
+SET out9;
+u=(e9**2)/(99494889/35);
+RUN
+
+proc reg data=produce109;
+model u = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 ;
+model u = yhat;
+run
+
+/*교호작용 변수선택*/
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 / vif collinoint ;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 / selection=forward slentry=.2
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 / selection=backward slstay=.05
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5  / selection=stepwise slentry=.2 slstay=.05
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 / selection=rsquare adjrsq mse cp
+RUN
+
+/*다중공선성*/
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ilnx3 ix4 / vif collinoint ;
+RUN
+
+/*자료진단*/
+
+proc reg data=produce101;
+model ay = x4 ilnx3 ix4;
+output out = out10 residual = e10 student = r10 predicted=yhat;
+run
+
+proc univariate data=out10 normal
+var e10 r10;
+run
+
+DATA produce1010;
+SET out10;
+u=(e10**2)/(108469483/35);
+RUN
+
+proc reg data=produce1010;
+model u = x4 ilnx3 ix4;
+model u = yhat;
+run
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ix2 ix4;
+RUN
+
+/**교호작용 추가 첫번째**/
+
+DATA produce101;
+	SET produce101;
+	ix2=i*x2;
+	ix4=i*x4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4 ix2 ix4 ;
+RUN
+
+/*교호작용  모형진단*/
+
+proc reg data=produce101;
+model ay = x2 x4 ix2 ix4 ;
+output out = out5 residual = e5 student = r5 predicted=yhat;
+run
+
+proc univariate data=out5 normal
+var e5 r5;
+run
+
+DATA produce106;
+SET out5;
+u=(e5**2)/(101010315/35);
+RUN
+
+proc reg data=produce106;
+model u = x2 x4 ix2 ix4 ;
+model u = yhat;
+run
+
+/*교호작용 변수선택*/
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4 ix2 ix4 / vif collinoint ;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4 ix2 ix4 / selection=forward slentry=.2
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4 ix2 ix4 / selection=backward slstay=.05
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4 ix2 ix4  / selection=stepwise slentry=.2 slstay=.05
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x2 x4 ix2 ix4 / selection=rsquare adjrsq mse cp
+RUN
+
+/*다중공선성*/
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ix2 ix4 / vif collinoint ;
+RUN
+
+/*자료진단*/
+
+proc reg data=produce101;
+model ay = x4 ix2 ix4;
+output out = out8 residual = e8 student = r8 predicted=yhat;
+run
+
+proc univariate data=out8 normal
+var e8 r8;
+run
+
+DATA produce108;
+SET out8;
+u=(e8**2)/(111168503/35);
+RUN
+
+proc reg data=produce108;
+model u = x4 ix2 ix4;
+model u = yhat;
+run
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ix2 ix4;
+RUN
+
+/*매출액 없는 자료에서의 최종모형*/
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ix2 ix4;
+RUN
+
+/*이상점, 영향력 있는 관측값*/
+
+DATA produce101;
+INFILE "c:\produce101.txt" EXPANDTABS ;
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	ay=y**.75
+	ix2=i*x2;
+	ix4=i*x4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ix2 ix4 ;
+output out=aa student=r11 rstudent=r11 cookd=d11;
+RUN
+
+PROC PRINT DATA=aa;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x4 ix2 ix4 / r influence partial ;
+RUN
+
+/*영향력 관측값 제외 첫번째*/
+
+DATA produce101;
+	INFILE "c:\produce101-o.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x1;
+RUN
+
+
+PROC REG DATA=produce101;
+MODEL y = x2;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 ;
+RUN
+
+proc reg data=produce101;
+model y = i x1 x2 x3 x4 x5;
+output out = out12 residual = e12 student = r12 predicted=yhat;
+run
+
+proc univariate data=out12 normal
+var e12 r12;
+run
+
+DATA produce1012;
+SET out12;
+u=(e12**2)/(62566647069/32);
+RUN
+
+proc reg data=produce1012;
+model u = i x1 x2 x3 x4 x5;
+model u = yhat;
+run
+
+/*변수변환*/
+
+PROC TRANSREG DATA=produce101;
+MODEL boxcox(y) = identity(i x1 x2 x3 x4 x5);
+RUN 
+
+DATA produce101;
+	INFILE "c:\produce101-o.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	ay=y**.75
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 x3 x4 x5;
+RUN
+
+DATA produce101;
+	INFILE "c:\produce101-o.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	ay=y**.75
+	lnx1=log(x1);
+	lnx2=log(x2);
+	lnx3=log(x3);
+	lnx4=log(x4);
+	lnx5=log(x5);
+	x1lnx1=x1*lnx1;
+	x2lnx2=x2*lnx2;
+	x3lnx3=x3*lnx3;
+	x4lnx4=x4*lnx4;
+	x5lnx5=x5*lnx5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x1 x1lnx1;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x2 x2lnx2;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x3 x3lnx3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x4 x4lnx4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x5 x5lnx5;
+RUN
+
+DATA produce101;
+	INFILE "c:\produce101-o.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	ay=y**.75
+	tx3=1/x3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 tx3 x4 x5;
+RUN
+
+/*변환 후 모형진단*/
+
+proc reg data=produce101;
+model ay = i x1 x2 tx3 x4 x5;
+output out = out14 residual = e14 student = r14 predicted=yhat;
+run
+
+proc univariate data=out14 normal
+var e14 r14;
+run
+
+DATA produce1014;
+SET out14;
+u=(e14**2)/(78476595/32);
+RUN
+
+proc reg data=produce1014;
+model u =  i x1 x2 tx3 x4 x5;
+model u = yhat;
+run
+
+/*변환 후 다중공선성*/
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 tx3 x4 x5 / vif collinoint ;
+RUN
+
+proc corr data=produce101;
+var i x1 x2 tx3 x4 x5;
+run
+
+/*교호작용 추가*/
+
+DATA produce101;
+	SET produce101;
+	tx3=1/x3;
+	ix1=i*x1;
+	ix2=i*x2;
+	itx3=i*tx3;
+	ix4=i*x4;
+	ix5=i*x5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 ;
+RUN
+
+/*교호작용  모형진단*/
+
+proc reg data=produce101;
+model ay = x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 ;
+output out = out16 residual = e16 student = r16 predicted=yhat;
+run
+
+proc univariate data=out16 normal
+var e16 r16;
+run
+
+DATA produce1016;
+SET out16;
+u=(e16**2)/(75067523/32);
+RUN
+
+proc reg data=produce1016;
+model u =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 ;
+model u = yhat;
+run
+
+/*교호작용 변수선택*/
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 / vif collinoint ;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 / selection=forward slentry=.2
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 / selection=backward slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5  / selection=stepwise slentry=.2 slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5  / selection=rsquare adjrsq mse cp
+RUN
+
+/*자료진단*/
+
+proc reg data=produce101;
+model ay = x4 ;
+output out = out20 residual = e20 student = r20 predicted=yhat;
+run
+
+proc univariate data=out20 normal
+var e20 r20;
+run
+
+DATA produce1020;
+SET out20;
+u=(e20**2)/(87335635/32);
+RUN
+
+proc reg data=produce1020;
+model u = x4 ;
+model u = yhat;
+run
+
+PROC REG DATA=produce101;
+MODEL ay = x4;
+RUN
+
+
+
+
+/*영향력 관측값 제외 두번째*/
+/***중간에 하다가 안함***/
+
+DATA produce101;
+	INFILE "c:\produce101-oo.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x1;
+RUN
+
+
+PROC REG DATA=produce101;
+MODEL y = x2;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 ;
+RUN
+
+proc reg data=produce101;
+model y = i x1 x2 x3 x4 x5;
+output out = out20 residual = e20 student = r20 predicted=yhat;
+run
+
+proc univariate data=out20 normal
+var e20 r20;
+run
+
+DATA produce1020;
+SET out20;
+u=(e20**2)/(75519629024/34);
+RUN
+
+proc reg data=produce1012;
+model u = i x1 x2 x3 x4 x5;
+model u = yhat;
+run
+
+/*변수변환*/
+
+PROC TRANSREG DATA=produce101;
+MODEL boxcox(y) = identity(i x1 x2 x3 x4 x5);
+RUN 
+
+DATA produce101;
+	INFILE "c:\produce101-oo.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5;
+RUN
+
+DATA produce101;
+	INFILE "c:\produce101-oo.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+	lnx1=log(x1);
+	lnx2=log(x2);
+	lnx3=log(x3);
+	lnx4=log(x4);
+	lnx5=log(x5);
+	x1lnx1=x1*lnx1;
+	x2lnx2=x2*lnx2;
+	x3lnx3=x3*lnx3;
+	x4lnx4=x4*lnx4;
+	x5lnx5=x5*lnx5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x1 x1lnx1;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x2 x2lnx2;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x3 x3lnx3;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x4 x4lnx4;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = x5 x5lnx5;
+RUN
+
+DATA produce101;
+	INFILE "c:\produce101-oo.txt" EXPANDTABS
+	INPUT i x1 x2 x3 x4 x5 x6 y;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5;
+RUN
+
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 / vif collinoint ;
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 / selection=forward slentry=.2
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5 / selection=backward slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL y = i x1 x2 x3 x4 x5  / selection=stepwise slentry=.2 slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5  / selection=rsquare adjrsq mse cp
+RUN
+
+/*변환 후 모형진단*/
+
+proc reg data=produce101;
+model ay = i x1 x2 lnx3 x4 x5;
+output out = out21 residual = e21 student = r21 predicted=yhat;
+run
+
+proc univariate data=out21 normal
+var e21 r21;
+run
+
+DATA produce1021;
+SET out21;
+u=(e21**2)/(83506665/34);
+RUN
+
+proc reg data=produce1021;
+model u =  i x1 x2 lnx3 x4 x5;
+model u = yhat;
+run
+
+/*변환 후 다중공선성*/
+
+PROC REG DATA=produce101;
+MODEL ay = i x1 x2 lnx3 x4 x5 / vif collinoint ;
+RUN
+
+proc corr data=produce101;
+var i x1 x2 lnx3 x4 x5;
+run
+
+/*교호작용 추가*/
+
+DATA produce101;
+	SET produce101;
+	lnx3=log(x3);
+	ix1=i*x1;
+	ix2=i*x2;
+	ilnx3=i*lnx3;
+	ix4=i*x4;
+	ix5=i*x5;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 ;
+RUN
+
+/*교호작용  모형진단*/
+
+proc reg data=produce101;
+model ay = x1 x2 lnx3 x4 x5 ix1 ix2 ilnx3 ix4 ix5 ;
+output out = out22 residual = e22 student = r22 predicted=yhat;
+run
+
+proc univariate data=out22 normal
+var e22 r22;
+run
+
+DATA produce1022;
+SET out22;
+u=(e22**2)/(73846263/34);
+RUN
+
+proc reg data=produce1016;
+model u =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 ;
+model u = yhat;
+run
+
+/*교호작용 변수선택*/
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 / vif collinoint ;
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 / selection=forward slentry=.2
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5 / selection=backward slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5  / selection=stepwise slentry=.2 slstay=.1
+RUN
+
+PROC REG DATA=produce101;
+MODEL ay =  x1 x2 tx3 x4 x5 ix1 ix2 itx3 ix4 ix5  / selection=rsquare adjrsq mse cp
+RUN
+
+/*자료진단*/
+
+proc reg data=produce101;
+model ay = x4 ;
+output out = out20 residual = e20 student = r20 predicted=yhat;
+run
+
+proc univariate data=out20 normal
+var e20 r20;
+run
+
+DATA produce1020;
+SET out20;
+u=(e20**2)/(87335635/35);
+RUN
+
+proc reg data=produce1020;
+model u = x4 ;
+model u = yhat;
+run
+
+PROC REG DATA=produce101;
+MODEL ay = x4;
+RUN
