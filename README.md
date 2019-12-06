@@ -29,7 +29,7 @@
 ![simple_regression](./image/simple_regression.PNG)
 
 ### 2. 다중 회귀 분석
-![multi_regression](./image/multi_regression.PNG)
+![multiple_regression](./image/multiple_regression.PNG)
 
 ### 3. 모형 진단 -> 변수 변환 -> 다중 공선성 확인 -> 변수 선택 (반복)
 
