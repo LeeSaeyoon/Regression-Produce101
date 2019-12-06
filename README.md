@@ -1,5 +1,5 @@
 # [회귀 분석] 프로듀스 101 연습생들의 최종 점수 및 데뷔 예측
-: main cause of debut of produce 101 trainee
+: [SAS] main cause of debut of produce 101 trainee
 
 ![title](./image/title.PNG)
 프로듀스 101에서 연습생들의 데뷔 요인을 알아보고 최종 데뷔하게 될 연습생들이 누구일지 예측해보기
